@@ -32,6 +32,7 @@ const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:5173",
   process.env.ADMIN_URL  || "http://localhost:5174",
 ];
+
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
@@ -40,7 +41,11 @@ app.use(cors({
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
+  exposedHeaders: ["set-cookie"],
 }));
+
+// Handle preflight requests
+app.options("*", cors());
 
 // Rate limiting
 const limiter = rateLimit({

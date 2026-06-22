@@ -8,15 +8,26 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const createStorage = (folder, allowedFormats = ["jpg", "jpeg", "png", "webp"]) =>
-  new CloudinaryStorage({
+const isCloudinaryConfigured =
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_CLOUD_NAME !== "your_cloud_name" &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET;
+
+const createStorage = (folder) => {
+  if (!isCloudinaryConfigured) {
+    // Fallback to memory storage if Cloudinary not configured
+    return multer.memoryStorage();
+  }
+  return new CloudinaryStorage({
     cloudinary,
     params: {
       folder: `skillshare/${folder}`,
-      allowed_formats: allowedFormats,
+      allowed_formats: ["jpg", "jpeg", "png", "webp"],
       transformation: [{ quality: "auto", fetch_format: "auto" }],
     },
   });
+};
 
 export const uploadAvatar = multer({
   storage: createStorage("avatars"),
