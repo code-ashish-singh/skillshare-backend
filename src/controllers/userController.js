@@ -19,13 +19,22 @@ export const getAllProviders = asyncHandler(async (req, res) => {
     ];
   }
 
+  // Safe sort — only allow known fields to prevent crash
+  const ALLOWED_SORTS = {
+    "-providerProfile.rating": { "providerProfile.rating": -1 },
+    "-providerProfile.completedProjects": { "providerProfile.completedProjects": -1 },
+    "-createdAt": { createdAt: -1 },
+    "createdAt": { createdAt: 1 },
+  };
+  const sortObj = ALLOWED_SORTS[sort] || { createdAt: -1 };
+
   const total = await User.countDocuments(query);
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
   const results = await User.find(query)
     .select("-password -passwordChangedAt -passwordResetToken -passwordResetExpires")
     .populate("providerProfile.skills", "title category rating completedProjects startingPrice")
-    .sort(sort)
+    .sort(sortObj)
     .skip(skip)
     .limit(parseInt(limit));
 
